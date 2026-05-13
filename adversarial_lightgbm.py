@@ -3,7 +3,6 @@ import lightgbm as lgb
 from sklearn.preprocessing import StandardScaler
 
 def fgsm_attack(model, X, y, epsilon, scaler):
-    """FGSM attack for regression."""
     X_adv = X.copy()
     for i in range(X.shape[0]):
         pred_orig = model.predict(X[i:i+1])[0]
@@ -34,7 +33,7 @@ def pgd_attack(model, X, y, epsilon, steps, alpha, scaler):
         X_adv = X + perturbation
     return X_adv
 
-def train_adversarial_model(X_train, y_train, X_val, y_val, params, epsilon, pgd_steps, pgd_alpha, adversarial_train=True):
+def train_adversarial_model(X_train, y_train, X_val, y_val, params, epsilon=0.5, pgd_steps=5, pgd_alpha=0.1, adversarial_train=True):
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_val_scaled = scaler.transform(X_val)
@@ -44,7 +43,6 @@ def train_adversarial_model(X_train, y_train, X_val, y_val, params, epsilon, pgd
     model = lgb.train(params, train_data, valid_sets=[valid_data], num_boost_round=100, callbacks=[lgb.early_stopping(10)])
 
     if adversarial_train:
-        # Generate adversarial examples on training set
         X_adv = pgd_attack(model, X_train_scaled, y_train, epsilon, pgd_steps, pgd_alpha, scaler)
         X_combined = np.vstack([X_train_scaled, X_adv])
         y_combined = np.hstack([y_train, y_train])
