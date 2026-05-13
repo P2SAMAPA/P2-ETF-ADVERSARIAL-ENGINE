@@ -17,16 +17,13 @@ UNIVERSES = {
     ]
 }
 
-# Macro columns
 MACRO_COLUMNS = ["VIX", "DXY", "T10Y2Y", "TBILL_3M"]
 
-# Rolling window for training (days)
 TRAIN_WINDOW = 252
 
-# LightGBM hyperparameters
 LGB_PARAMS = {
-    "objective": "lambdarank",
-    "metric": "ndcg",
+    "objective": "regression",          # changed from lambdarank
+    "metric": "mse",
     "boosting_type": "gbdt",
     "num_leaves": 31,
     "learning_rate": 0.05,
@@ -37,12 +34,10 @@ LGB_PARAMS = {
     "random_state": 42
 }
 
-# Adversarial attack parameters
-EPSILON = 0.5      # perturbation magnitude (in standard deviations of each feature)
+EPSILON = 0.5
 PGD_STEPS = 5
 PGD_ALPHA = 0.1
 
-# Adversarial training (retrain on adversarial examples)
 ADVERSARIAL_TRAIN = True
 
 TOP_N = 3
