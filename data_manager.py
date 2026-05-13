@@ -22,3 +22,10 @@ def prepare_returns_matrix(df, universe_tickers):
                 returns[ticker] = np.log(price / price.shift(1))
     returns = returns.dropna(how='all')
     return returns
+
+def get_macro_data(df):
+    """Return DataFrame of macro columns (levels)."""
+    macro_cols = [c for c in config.MACRO_COLUMNS if c in df.columns]
+    macro = df[macro_cols].copy()
+    macro = macro.ffill().dropna()
+    return macro
