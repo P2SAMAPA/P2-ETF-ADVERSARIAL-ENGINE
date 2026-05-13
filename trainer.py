@@ -10,15 +10,17 @@ from adversarial_lightgbm import train_adversarial_model, predict_robust
 
 def create_ranking_data(features, returns_next_day):
     """
-    Features: (n_samples, n_etfs, n_features)
-    Returns_next_day: (n_samples, n_etfs)
-    We need to reshape to (n_samples * n_etfs, n_features) and create groups per time point.
+    features: (n_days, n_etfs, n_features)
+    returns_next_day: (n_days, n_etfs)
+    Returns:
+        X: (n_days * n_etfs, n_features)
+        y: (n_days * n_etfs,)
+        group: (n_days,) each entry = n_etfs (number of rows per query)
     """
     n_days, n_etfs, n_feat = features.shape
     X = features.reshape(-1, n_feat)
     y = returns_next_day.reshape(-1)
-    # group: each day is a query (all ETFs in that day)
-    group = np.repeat(np.arange(n_days), n_etfs)
+    group = np.full(n_days, n_etfs, dtype=np.int32)
     return X, y, group
 
 def main():
@@ -60,7 +62,6 @@ def main():
             print("  Not enough daily samples")
             continue
 
-        # Convert to arrays
         X = np.array(daily_features)          # (T, n_etfs, n_feat)
         y = np.array(daily_targets)           # (T, n_etfs)
         # Train/validation split (last 50 days for validation)
@@ -90,7 +91,6 @@ def main():
                                      pgd_steps=config.PGD_STEPS,
                                      pgd_alpha=config.PGD_ALPHA)
 
-        # Rank ETFs by robust prediction
         sorted_idx = np.argsort(robust_pred)[::-1]
         top_etfs = []
         full_scores = {}
