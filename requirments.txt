@@ -1,0 +1,7 @@
+numpy
+pandas
+scikit-learn
+lightgbm
+huggingface-hub
+streamlit
+plotly
