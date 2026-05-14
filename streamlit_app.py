@@ -18,13 +18,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="main-header">🛡️ Adversarial Robustness Engine</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">LightGBM ranker with PGD adversarial training | Robust predictions under worst‑case perturbations</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Multi‑window adversarial training (63/252/508d) | Robust predictions under worst‑case perturbations</div>', unsafe_allow_html=True)
 
 st.sidebar.markdown("## 🛡️ Adversarial Robustness")
 st.sidebar.markdown(f"**Run Date:** `{st.session_state.get('run_date', 'Not loaded')}`")
 st.sidebar.markdown(f"**Next Trading Day:** `{next_trading_day()}`")
+st.sidebar.markdown(f"**Windows:** 63, 252, 508 days")
 st.sidebar.markdown(f"**Perturbation (ε):** {config.EPSILON} std")
-st.sidebar.markdown(f"**PGD steps:** {config.PGD_STEPS}")
 
 OUTPUT_REPO = config.OUTPUT_REPO
 HF_TOKEN = config.HF_TOKEN
@@ -68,7 +68,7 @@ if "error" in data:
 st.session_state['run_date'] = data['run_date']
 universes = data["universes"]
 
-st.header("🏆 Top ETFs by Adversarially‑Robust Predicted Return")
+st.header("🏆 Top ETFs by Adversarially‑Robust Predicted Return (Best Window)")
 
 for universe_name, uni_data in universes.items():
     top_etfs = uni_data.get("top_etfs", [])
@@ -82,14 +82,17 @@ for universe_name, uni_data in universes.items():
             <div class="etf-card">
                 <div class="etf-ticker">{etf['ticker']}</div>
                 <div class="etf-score">robust return = {etf['robust_pred_return']:.4f}</div>
+                <div class="etf-score">best window = {etf['best_window']}d</div>
             </div>
             """, unsafe_allow_html=True)
-    with st.expander("📋 Full ranking (all ETFs)"):
+    with st.expander("📋 Full ranking (best window per ETF)"):
         full = uni_data.get("full_scores", {})
         if full:
-            df = pd.DataFrame(list(full.items()), columns=["ETF", "Robust Predicted Return"])
-            df = df.sort_values("Robust Predicted Return", ascending=False)
+            df = pd.DataFrame([
+                {"ETF": ticker, "Best Predicted Return": info["best_pred_return"], "Best Window": info["best_window"]}
+                for ticker, info in full.items()
+            ]).sort_values("Best Predicted Return", ascending=False)
             st.dataframe(df, use_container_width=True, hide_index=True)
     st.divider()
 
-st.caption("The LightGBM ranker is trained with adversarial examples (PGD, ε=0.5 std). Predictions shown are under worst‑case perturbation. Higher return → stronger robust signal.")
+st.caption("For each ETF, we train separate LightGBM models on 63, 252, and 508‑day windows, then select the window that gives the highest robust predicted return. The model is adversarially trained with PGD (ε=0.5).")
