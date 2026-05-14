@@ -19,10 +19,11 @@ UNIVERSES = {
 
 MACRO_COLUMNS = ["VIX", "DXY", "T10Y2Y", "TBILL_3M"]
 
-TRAIN_WINDOW = 252
+# Multiple rolling windows for training
+WINDOWS = [63, 252, 508]
 
 LGB_PARAMS = {
-    "objective": "regression",          # changed from lambdarank
+    "objective": "regression",
     "metric": "mse",
     "boosting_type": "gbdt",
     "num_leaves": 31,
@@ -37,7 +38,6 @@ LGB_PARAMS = {
 EPSILON = 0.5
 PGD_STEPS = 5
 PGD_ALPHA = 0.1
-
 ADVERSARIAL_TRAIN = True
 
 TOP_N = 3
